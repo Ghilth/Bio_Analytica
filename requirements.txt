@@ -1,0 +1,6 @@
+gradio
+numpy
+pillow
+scikit-image
+tensorflow
+keras
