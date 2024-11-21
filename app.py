@@ -1,61 +1,54 @@
 import gradio as gr
+from PIL import Image
 import numpy as np
-from PIL import Image, ImageOps
-from skimage.transform import resize
-import tensorflow as tf
+from segmentation import segment  
 
-# Fonction de segmentation améliorée (exemple, modèle réel pourrait être intégré)
-def segmenter_image(image):
-    image_gray = ImageOps.grayscale(image)
-    return image_gray
-
-# Fonction fictive pour détecter la maladie (à remplacer par un modèle réel)
-def detecter_maladie(image):
-    # Ici, nous simulons une détection de maladie
-    return "Maladie détectée : Oïdium (champignon) - Un revêtement poudreux blanc sur les feuilles."
-
-# Fonction pour générer des recommandations
-def recommandations(image):
-    return "Recommandations : Traitez avec un fongicide adapté et augmentez l’aération autour de la plante."
-
-# Fonction principale de l'application : segmentation, détection de maladie et recommandations
+# Fonction principale de l'application
 def bio_analytica(image):
-    image_segmentee = segmenter_image(image)
-    maladie_detectee = detecter_maladie(image)
-    reco_text = recommandations(image)
+    """
+    Analyse une image de feuille de plante, segmente les anomalies et retourne l'image segmentée.
     
-    return image_segmentee, maladie_detectee, reco_text
-
-
+    Args:
+        image (PIL.Image): Image téléchargée par l'utilisateur.
+        
+    Returns:
+        PIL.Image: Image segmentée avec anomalies mises en évidence.
+    """
+    # Sauvegarder temporairement l'image téléchargée
+    image_path = "temp_uploaded_image.jpg"
+    image.save(image_path)
     
+    # Appeler la fonction segment pour traiter l'image
+    segment(image_path)  
+    
+    # Charger l'image segmentée pour la renvoyer dans l'interface
+    segmented_image = Image.open("image_segmented.jpg")
+    
+    return segmented_image
 
-# Personnalisation de l'interface avec un design plus soigné
+# Interface utilisateur Gradio
 interface = gr.Interface(
-    fn=bio_analytica,  # Fonction principale
-    inputs=gr.Image(type="pil"),  # Entrée : Image de la plante
-    outputs=[gr.Image(type="pil"), "text", "text"],  # Sorties : Image segmentée, maladie, recommandations
-    title="🌿 Bio Analytica - Analyse Avancée des Plantes",
+    fn=bio_analytica,  # Fonction de traitement
+    inputs=gr.Image(type="pil"),  # Entrée : Image téléchargée
+    outputs=gr.Image(type="pil"),  # Sortie : Image segmentée
+
+    title="🌿 Analyse des Feuilles de Plantes - Détection d'Anomalies",
+
     description="""
     <div style="text-align: center;">
-        <h2 style="color: #2E8B57;">Téléchargez une image de votre plante malade 🌱</h2>
-        <p style="font-size: 16px; color: #555;">
-            Nous allons analyser l'image pour détecter la maladie présente et vous fournir des recommandations adaptées.<br>
-            Obtenez une segmentation précise de la plante 🌿 et découvrez comment soigner vos végétaux.
+        <h2 style="color: green;">Bio Analytica 🌱</h2>
+        <p style="font-size: 16px; color: white;">
+            Téléchargez une image de feuille de plante.<br>
+            Notre outil segmente l'image et fait ressortir les anomalies présentes sur la feuille.<br>
+            Obtenez des informations visuelles claires sur l'état de vos plantes 🌿.
         </p>
-    </div>""",
-    examples=[["exemple_image_plante1.jpg"], ["exemple_image_plante2.jpg"]],  # Exemples pour tester
-    css="""
-    body { background-color: #f0f8ff; }  /* Couleur de fond douce */
-    .output_image { border-radius: 10px; border: 2px solid #2E8B57; } /* Bordure stylisée pour les images segmentées */
-    h2 { font-family: 'Arial', sans-serif; color: #2E8B57; } /* Couleur principale pour les titres */
-    p { font-family: 'Verdana', sans-serif; color: #4F4F4F; } /* Polices élégantes pour les descriptions */
-    button { background-color: #2E8B57; color: white; border-radius: 5px; } /* Style pour les boutons */
-    .gradio-container { font-family: 'Arial', sans-serif; } /* Application de police générale */
+    </div>
     """,
-    layout="vertical",  # Organisation verticale avec image en haut, puis texte
-    theme="default",  # Utiliser un thème par défaut amélioré
-    allow_flagging="never"
+    examples=[["feuille.jpg"], ["feuille_segment.jpg"]],  # Exemples d'images pour test
+    flagging_mode="never",  # Désactiver le signalement des résultats
+    theme="dark"  # Thème simple
 )
 
 # Lancement de l'application
-interface.launch()
+if __name__ == "__main__":
+    interface.launch()
